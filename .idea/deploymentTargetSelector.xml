@@ -4,10 +4,10 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-12-30T14:52:25.731085500Z">
+        <DropdownSelection timestamp="2026-03-03T13:51:26.986304400Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\Apren Sena Sistemas\.android\avd\Medium_Phone.avd" />
+              <DeviceId pluginId="PhysicalDevice" identifier="serial=3112SH1010024538" />
             </handle>
           </Target>
         </DropdownSelection>

@@ -6,9 +6,7 @@ plugins {
 
 android {
     namespace = "com.empresa.autocleaner"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36 // Actualizado a 36 como requieren las dependencias
 
     defaultConfig {
         applicationId = "com.empresa.autocleaner"
