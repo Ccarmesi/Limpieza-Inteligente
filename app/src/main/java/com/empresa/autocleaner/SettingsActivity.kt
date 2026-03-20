@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import kotlin.math.roundToInt
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.tooling.preview.Preview
 
 class SettingsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,19 +60,12 @@ class SettingsActivity : ComponentActivity() {
             }
         }
     }
-
-    override fun onResume() {
-        super.onResume()
-        // La comprobación de permisos se ha movido a la pantalla de ajustes para
-        // no interrumpir el flujo de autenticación.
-    }
 }
 
 @Composable
 fun PasswordScreen(onPasswordCorrect: () -> Unit) {
     val context = LocalContext.current
     var password by remember { mutableStateOf("") }
-    // Contraseña simple. Para una aplicación real, usar un mecanismo de autenticación más seguro.
     val correctPassword = "Luis031466"
 
     Column(
@@ -119,10 +113,10 @@ fun PasswordScreen(onPasswordCorrect: () -> Unit) {
 @Composable
 fun SettingsScreen() {
     val context = LocalContext.current
+    // Nota: SettingsManager puede devolver valores por defecto si el contexto de Preview no tiene SharedPreferences reales.
     var sliderPosition by remember { mutableFloatStateOf(SettingsManager.getDaysToKeep(context).toFloat()) }
     var frequencyPosition by remember { mutableFloatStateOf(SettingsManager.getExecutionFrequency(context).toFloat()) }
 
-    // Comprueba el permiso cada vez que el usuario vuelve a la pantalla de ajustes.
     LaunchedEffect(Unit) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager()) {
             Toast.makeText(context, "Se necesita permiso para acceder a todos los archivos.", Toast.LENGTH_LONG).show()
@@ -153,7 +147,7 @@ fun SettingsScreen() {
                 SettingsManager.saveDaysToKeep(context, days)
                 WorkerScheduler.schedule(context.applicationContext)
                 Toast.makeText(context, "Ajuste guardado: $days días. La tarea ha sido reprogramada.", Toast.LENGTH_SHORT).show()
-            }, valueRange = 0f..30f, steps = 29)
+            }, valueRange = 0f..180f, steps = 179)
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(text = "Ejecutar limpieza cada ${frequencyPosition.roundToInt()} horas")
@@ -174,5 +168,22 @@ fun SettingsScreen() {
                 Text("Ejecutar limpieza ahora")
             }
         }
+    }
+}
+
+// FUNCIONES DE VISTA PREVIA (PREVIEW)
+@Preview(showBackground = true, name = "Pantalla de Contraseña")
+@Composable
+fun PasswordPreview() {
+    MaterialTheme {
+        PasswordScreen(onPasswordCorrect = {})
+    }
+}
+
+@Preview(showBackground = true, name = "Pantalla de Ajustes")
+@Composable
+fun SettingsPreview() {
+    MaterialTheme {
+        SettingsScreen()
     }
 }
