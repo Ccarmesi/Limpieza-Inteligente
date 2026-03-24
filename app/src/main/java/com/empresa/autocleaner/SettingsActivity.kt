@@ -14,9 +14,11 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -27,6 +29,11 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.Icon
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DatePicker
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -43,6 +50,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import kotlin.math.roundToInt
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 
 class SettingsActivity : ComponentActivity() {
@@ -75,37 +84,99 @@ fun PasswordScreen(onPasswordCorrect: () -> Unit) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "Acceso Restringido",
-            style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Center
+        Icon(
+            painter = painterResource(R.drawable.bloqueo),
+            contentDescription = null,
+            modifier = Modifier.height(150.dp),
+            tint = Color.Unspecified
         )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.padding(end = 50.dp)
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.nokey),
+                contentDescription = null,
+                tint = Color.Unspecified,
+                modifier = Modifier.padding(end = 10.dp)
+            )
+            Text(
+                text = "Acceso Restringido",
+                style = MaterialTheme.typography.headlineSmall,
+                textAlign = TextAlign.Center,
+
+            )
+        }
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = "Advertencia: No elimine la aplicación. El acceso está restringido únicamente al área de sistemas.",
+            text = "El acceso está restringido únicamente al área de sistemas",
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.error
         )
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(15.dp))
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Contraseña") },
+            placeholder = {
+                Text("Contraseña",
+                    modifier = Modifier
+                        .width(280.dp),
+                    textAlign = TextAlign.Center)
+            },
             singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            modifier = Modifier
+                .height(50.dp)
+                .width(310.dp)
         )
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = {
+        TextButton(onClick = {
             if (password == correctPassword) {
                 onPasswordCorrect()
             } else {
                 Toast.makeText(context, "Contraseña incorrecta", Toast.LENGTH_SHORT).show()
             }
         }) {
-            Text("Ingresar")
+            Icon(
+                painter = painterResource(R.drawable.key),
+                contentDescription = null,
+                tint = Color.Unspecified,
+                modifier = Modifier
+                    .height(50.dp)
+                    .width(50.dp)
+            )
         }
+    }
+}
+
+@Composable
+@ExperimentalMaterial3Api
+fun DatePickerModal(
+    onDateSelected: (Long?) -> Unit,
+    onDismiss: () -> Unit
+){
+    val datePickerState = rememberDatePickerState()
+
+    DatePickerDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = {
+                onDateSelected(datePickerState.selectedDateMillis)
+                onDismiss()
+            }) {
+                Text("OK")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        }
+    ){
+        DatePicker(state = datePickerState)
     }
 }
 
@@ -138,7 +209,7 @@ fun SettingsScreen() {
         }
     }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Ajustes de Limpieza Inteligente") }) }) { paddingValues ->
+    Scaffold(topBar = { TopAppBar(title = { Text("Limpieza Inteligente", modifier = Modifier.width(360.dp), textAlign = TextAlign.Center) }) }) { paddingValues ->
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues).padding(16.dp)) {
             Text(text = if (sliderPosition.roundToInt() == 0) "¡PRECAUCIÓN! Se eliminarán TODOS los archivos" else "Eliminar archivos con ${sliderPosition.roundToInt()} o más días de antigüedad")
             Spacer(modifier = Modifier.height(8.dp))
