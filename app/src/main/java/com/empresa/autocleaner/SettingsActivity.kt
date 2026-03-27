@@ -14,7 +14,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.snapping.SnapPosition
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,8 +33,12 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Icon
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DatePicker
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DatePickerDefaults
+import androidx.compose.material3.TimePicker
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -49,17 +52,16 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.draw.clip
 import androidx.core.content.ContextCompat
 import androidx.compose.ui.Alignment
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.material3.SelectableDates
+import androidx.compose.material3.TimePickerDefaults
 import kotlin.math.roundToInt
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -140,8 +142,8 @@ fun PasswordScreen(onPasswordCorrect: () -> Unit) {
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             modifier = Modifier
-                .height(60.dp)
-                .width(310.dp),
+                .background(color = Color(0xFFFFFFFF), shape = RoundedCornerShape(20.dp))
+                .border(1.dp, Color(0xFF174375), shape = RoundedCornerShape(5.dp)),
         )
         Spacer(modifier = Modifier.height(16.dp))
         TextButton(onClick = {
@@ -187,22 +189,81 @@ fun DatePickerModal(
     )
 
     DatePickerDialog(
+        modifier = Modifier
+            .background(Color(0xFFFFFFFF), shape = RoundedCornerShape(25.dp))
+            .border(1.dp, Color(0xFF174375), shape = RoundedCornerShape(25.dp)),
         onDismissRequest = onDismiss,
+        colors = DatePickerDefaults.colors(
+            containerColor = Color.White
+        ),
         confirmButton = {
             TextButton(onClick = {
                 onDateSelected(datePickerState.selectedDateMillis)
                 onDismiss()
             }) {
-                Text("OK")
+                Text(
+                    text ="OK",
+                    color = Color(0xFF174375)
+                )
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancelar")
+                Text(
+                    text = "Cancelar",
+                    color = Color(0xFF174375)
+                )
             }
         }
     ){
-        DatePicker(state = datePickerState)
+        DatePicker(
+            state = datePickerState,
+            colors = DatePickerDefaults.colors(
+                containerColor =  Color.White,
+                selectedDayContainerColor = Color(0xFF174375),
+                selectedDayContentColor = Color.White,
+                dayContentColor = Color.Black,
+                headlineContentColor = Color(0xFF174375)
+            )
+        )
+    }
+}
+
+@Composable
+@ExperimentalMaterial3Api
+fun DialExample(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+){
+    val currentTime = Calendar.getInstance()
+
+    val timePickerState = rememberTimePickerState(
+        initialHour = currentTime.get(Calendar.HOUR_OF_DAY),
+        initialMinute = currentTime.get(Calendar.MINUTE),
+        is24Hour = true,
+    )
+
+    Column (
+        modifier = Modifier
+            .border(color = Color(0xFF174375), width = 1.dp, shape = RoundedCornerShape(10.dp))
+            .background(color = Color.Unspecified, shape = RoundedCornerShape(10.dp))
+    ){
+        TimePicker(state = timePickerState, colors = TimePickerDefaults.colors(
+            containerColor = Color.White,
+            clockDialColor = Color.White,
+            selectorColor = Color(0xFF174375),
+            timeSelectorSelectedContainerColor = Color.White,
+            timeSelectorSelectedContentColor = Color(0xFF174375),
+            timeSelectorUnselectedContainerColor = Color(0xFF174375),
+            timeSelectorUnselectedContentColor = Color.White
+        ), modifier = Modifier.padding(top = 10.dp))
+        Button(onClick = onDismiss, modifier = Modifier.padding(start = 10.dp), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF174375))) {
+            Text("Cancelar")
+        }
+        Spacer(modifier = Modifier.width(5.dp))
+        Button(onClick = onConfirm, modifier = Modifier.padding(start = 10.dp, bottom = 5.dp), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF174375))) {
+            Text("Aceptar selección")
+        }
     }
 }
 
@@ -210,7 +271,6 @@ fun DatePickerModal(
 @Composable
 fun SettingsScreen() {
     val context = LocalContext.current
-    val activity = (context as? ComponentActivity)
     // Nota: SettingsManager puede devolver valores por defecto si el contexto de Preview no tiene SharedPreferences reales.
     var daysToKeep by remember { mutableFloatStateOf(SettingsManager.getDaysToKeep(context).toFloat()) }
     var frequencyPosition by remember { mutableFloatStateOf(SettingsManager.getExecutionFrequency(context).toFloat()) }
@@ -262,7 +322,6 @@ fun SettingsScreen() {
                 Text(
                     text = "Archivos con ${daysToKeep.roundToInt()} o más días de antigüedad",
                     style = MaterialTheme.typography.bodyLarge,
-                    //textAlign = TextAlign.Center,
                     modifier = Modifier.padding(top = 9.dp, start = 10.dp)
                 )
             }
@@ -301,9 +360,16 @@ fun SettingsScreen() {
                 )
             }
         }
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(text = "Ejecutar limpieza cada ${frequencyPosition.roundToInt()} horas")
+        Spacer(modifier = Modifier.height(20.dp))
+        Column(){
+            Row() {
+                Icon(
+                    painter = painterResource(R.drawable.reloj),
+                    contentDescription = null,
+                )
+                Text(text = "Ejecutar limpieza cada ${frequencyPosition.roundToInt()} horas")
+            }
+        }
         Spacer(modifier = Modifier.height(8.dp))
         Slider(value = frequencyPosition, onValueChange = { frequencyPosition = it }, onValueChangeFinished = {
             val hours = frequencyPosition.roundToInt()
@@ -322,7 +388,7 @@ fun SettingsScreen() {
         }
     }
 }
-
+/*
 // FUNCIONES DE VISTA PREVIA (PREVIEW)
 @Preview(showBackground = true, name = "Pantalla de Contraseña")
 @Composable
@@ -331,7 +397,7 @@ fun PasswordPreview() {
         PasswordScreen(onPasswordCorrect = {})
     }
 }
-
+*/
 @Preview(showBackground = true, name = "Pantalla de Ajustes")
 @Composable
 fun SettingsPreview() {
@@ -339,12 +405,21 @@ fun SettingsPreview() {
         SettingsScreen()
     }
 }
-
+/*
 @Preview(showBackground = true, name = "Modal de Fecha")
 @Composable
 @ExperimentalMaterial3Api
 fun DatePickerPreview() {
     MaterialTheme {
         DatePickerModal(onDateSelected = {}, onDismiss = {})
+    }
+}
+*/
+@Preview(showBackground = true, name = "Modal de Hora")
+@Composable
+@ExperimentalMaterial3Api
+fun TimePickerPreview() {
+    MaterialTheme {
+        DialExample(onConfirm = {}, onDismiss = {})
     }
 }

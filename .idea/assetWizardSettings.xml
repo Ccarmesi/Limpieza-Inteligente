@@ -301,7 +301,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="file:/$PROJECT_DIR$/../../Apren%20Sena%20Sistemas/AppData/Local/Android/Sdk/icons/material/materialicons/settings/baseline_settings_24.xml" />
+                                      <entry key="url" value="file:/$PROJECT_DIR$/../../Apren%20Sena%20Sistemas/AppData/Local/Android/Sdk/icons/material/materialsymbolsoutlined/nest_clock_farsight_analog/outline_nest_clock_farsight_analog_24.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -312,7 +312,7 @@
                         <option name="values">
                           <map>
                             <entry key="color" value="174375" />
-                            <entry key="outputName" value="ajustes" />
+                            <entry key="outputName" value="reloj" />
                             <entry key="sourceFile" value="C:\Users\Apren Sena Sistemas\AutoCleaner" />
                           </map>
                         </option>
