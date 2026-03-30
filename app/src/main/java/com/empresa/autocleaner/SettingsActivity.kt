@@ -59,6 +59,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.TimePickerDefaults
+import androidx.compose.material3.TimePickerState
 import kotlin.math.roundToInt
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -232,7 +233,7 @@ fun DatePickerModal(
 @Composable
 @ExperimentalMaterial3Api
 fun DialExample(
-    onConfirm: () -> Unit,
+    onConfirm: (TimePickerState) -> Unit,
     onDismiss: () -> Unit,
 ){
     val currentTime = Calendar.getInstance()
@@ -261,7 +262,7 @@ fun DialExample(
             Text("Cancelar")
         }
         Spacer(modifier = Modifier.width(5.dp))
-        Button(onClick = onConfirm, modifier = Modifier.padding(start = 10.dp, bottom = 5.dp), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF174375))) {
+        Button(onClick = {onConfirm(timePickerState)}, modifier = Modifier.padding(start = 10.dp, bottom = 5.dp), colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF174375))) {
             Text("Aceptar selección")
         }
     }
@@ -273,7 +274,7 @@ fun SettingsScreen() {
     val context = LocalContext.current
     // Nota: SettingsManager puede devolver valores por defecto si el contexto de Preview no tiene SharedPreferences reales.
     var daysToKeep by remember { mutableFloatStateOf(SettingsManager.getDaysToKeep(context).toFloat()) }
-    var frequencyPosition by remember { mutableFloatStateOf(SettingsManager.getExecutionFrequency(context).toFloat()) }
+    var selectedTime by remember { mutableFloatStateOf(SettingsManager.getExecutionFrequency(context).toFloat()) }
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
 
@@ -300,11 +301,29 @@ fun SettingsScreen() {
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
+            .height(800.dp)
+            .padding(10.dp),
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        Text(
+            text = "Limpieza Inteligente",
+            style = MaterialTheme.typography.headlineLarge,
+            textAlign = TextAlign.Center
+        )
+        Icon(
+            painter = painterResource(R.drawable.bloqueo),
+            contentDescription = null,
+            tint = Color.Unspecified
+        )
+        Text(
+            text = "Esta aplicación borrara solo los archivos tipo Imagen y Video",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.error,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.width(330.dp)
+        )
+        Spacer(modifier = Modifier.height(20.dp))
         Column(
             modifier = Modifier
                 .background(color = Color(0xFFFFFFFF), shape = RoundedCornerShape(10.dp))
@@ -330,7 +349,7 @@ fun SettingsScreen() {
             Button(
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF174375)),
                 modifier = Modifier
-                    .padding(bottom = 10.dp, start = 45.dp),
+                    .padding(bottom = 10.dp, start = 50.dp),
                 onClick = { showDatePicker = true }
             ) {
                 Icon(painter = painterResource(R.drawable.calender), contentDescription = null)
@@ -361,12 +380,12 @@ fun SettingsScreen() {
                 )
             }
         }
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(10.dp))
         Column(
             modifier = Modifier
                 .background(color = Color(0xFFFFFFFF), shape = RoundedCornerShape(10.dp))
                 .border(1.dp, Color(0xFF174375), shape = RoundedCornerShape(10.dp))
-        ){
+        ) {
             Row(
                 modifier = Modifier.width(400.dp)
             ) {
@@ -380,42 +399,73 @@ fun SettingsScreen() {
                         .width(50.dp)
                 )
                 Text(
-                    text = "Ejecutar limpieza cada ${frequencyPosition.roundToInt()} horas",
+                    text = "Ejecutar limpieza cada ${selectedTime.roundToInt()} horas",
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(top = 20.dp, start = 10.dp)
                 )
             }
+
+            Spacer(modifier = Modifier.height(20.dp))
+            Button(
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF174375)),
+                modifier = Modifier
+                    .padding(bottom = 10.dp, start = 40.dp),
+                onClick = { showTimePicker = true }
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.relojcalendario),
+                    contentDescription = null
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Cambiar frecuencia de ejecución")
+            }
+            if (showTimePicker) {
+                DialExample(
+                    onConfirm = { time ->
+                        val hours = time.hour
+                        selectedTime = hours.toFloat()
+                        SettingsManager.saveExecutionFrequency(context, hours)
+                        WorkerScheduler.schedule(context.applicationContext)
+                        Toast.makeText(
+                            context,
+                            "Frecuencia guardada: $hours horas.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        showTimePicker = false
+                    },
+                    onDismiss = { showTimePicker = false }
+                )
+            }
         }
-        Spacer(modifier = Modifier.height(8.dp))
-        Button(
-            colors =ButtonDefaults.buttonColors(containerColor = Color(0xFF174375)),
+        Spacer(modifier = Modifier.height(10.dp))
+        Column(
             modifier = Modifier
-                .padding(bottom = 10.dp, start = 45.dp),
-            onClick = { showTimePicker = true }
+                .background(color = Color(0xFFFFFFFF), shape = RoundedCornerShape(10.dp))
+                .border(1.dp, Color(0xFF174375), shape = RoundedCornerShape(10.dp))
         ){
-            Icon(painter = painterResource(R.drawable.relojcalendario), contentDescription = null)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Cambiar frecuencia de ejecución")
+            Row(){
+                Icon(painterResource(R.drawable.movil), contentDescription = null, tint = Color(0xFF174375), modifier = Modifier.padding(start = 15.dp, top = 19.dp).height(50.dp).width(50.dp))
+                Text(text = "La tarea de limpieza se ejecutará automáticamente cada ${selectedTime.roundToInt()} horas con la configuración guardada.", textAlign = TextAlign.Left, modifier = Modifier.padding(start = 10.dp, end = 15.dp, top = 9.dp))
+            }
+            Spacer(modifier = Modifier.height(20.dp))
+            Button(
+                modifier = Modifier.padding(start = 70.dp, bottom = 10.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF174375)),
+                onClick = {
+                WorkerScheduler.runNow(context)
+                Toast.makeText(context, "Ejecutando limpieza inmediata...", Toast.LENGTH_SHORT).show()
+            }) {
+                Icon(painterResource(R.drawable.ejecutar), contentDescription = null)
+                Text(text = "Ejecutar limpieza ahora", modifier = Modifier.padding(start = 10.dp))
+            }
         }
-        if (showTimePicker){
-            DialExample(
-                onConfirm = { frequencyPosition = timePickerState.hour.toFloat()},
-        },
-        /*Slider(value = frequencyPosition, onValueChange = { frequencyPosition = it }, onValueChangeFinished = {
-            val hours = frequencyPosition.roundToInt()
-            SettingsManager.saveExecutionFrequency(context, hours)
-            WorkerScheduler.schedule(context.applicationContext)
-            Toast.makeText(context, "Frecuencia guardada: $hours horas.", Toast.LENGTH_SHORT).show()
-        }, valueRange = 1f..24f, steps = 22)*/
-        Spacer(modifier = Modifier.height(16.dp))
-        Text("La tarea de limpieza se ejecutará automáticamente cada ${frequencyPosition.roundToInt()} horas con la configuración guardada.")
-        Spacer(modifier = Modifier.height(24.dp))
-        Button(onClick = {
-            WorkerScheduler.runNow(context)
-            Toast.makeText(context, "Ejecutando limpieza inmediata...", Toast.LENGTH_SHORT).show()
-        }) {
-            Text("Ejecutar limpieza ahora")
-        }
+        Spacer(modifier = Modifier.height(20.dp))
+        Text(
+            text = "Oszford Seguridad Especializada\nCreado por Stiven Guerrero\nVersión 2.0",
+            style = MaterialTheme.typography.bodySmall,
+            textAlign = TextAlign.Center,
+            color = Color(0xFF9CA3AF)
+        )
     }
 }
 /*
@@ -444,7 +494,7 @@ fun DatePickerPreview() {
         DatePickerModal(onDateSelected = {}, onDismiss = {})
     }
 }
-*/
+
 @Preview(showBackground = true, name = "Modal de Hora")
 @Composable
 @ExperimentalMaterial3Api
@@ -452,4 +502,5 @@ fun TimePickerPreview() {
     MaterialTheme {
         DialExample(onConfirm = {}, onDismiss = {})
     }
-}
+}        
+ */
