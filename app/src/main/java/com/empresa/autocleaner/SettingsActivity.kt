@@ -19,15 +19,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Icon
@@ -104,21 +106,20 @@ fun PasswordScreen(onPasswordCorrect: () -> Unit) {
         )
         Spacer(modifier = Modifier.height(10.dp))
         Row(
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
-            modifier = Modifier.padding(end = 50.dp)
+            horizontalArrangement = Arrangement.Center
         ) {
             Icon(
                 painter = painterResource(R.drawable.nokey),
                 contentDescription = null,
-                tint = Color.Unspecified,
-                modifier = Modifier.padding(end = 25.dp)
+                tint = Color.Unspecified
             )
             Text(
                 text = "Acceso Restringido",
                 style = MaterialTheme.typography.headlineSmall,
                 textAlign = TextAlign.Center,
-
+                modifier = Modifier.width(250.dp)
             )
         }
         Spacer(modifier = Modifier.height(16.dp))
@@ -126,7 +127,7 @@ fun PasswordScreen(onPasswordCorrect: () -> Unit) {
             text = "El acceso está restringido únicamente al área de sistemas",
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.error
+            color = Color.Red
         )
         Spacer(modifier = Modifier.height(15.dp))
         OutlinedTextField(
@@ -272,6 +273,7 @@ fun DialExample(
 @Composable
 fun SettingsScreen() {
     val context = LocalContext.current
+    val scrollState = rememberScrollState()
     // Nota: SettingsManager puede devolver valores por defecto si el contexto de Preview no tiene SharedPreferences reales.
     var daysToKeep by remember { mutableFloatStateOf(SettingsManager.getDaysToKeep(context).toFloat()) }
     var selectedTime by remember { mutableFloatStateOf(SettingsManager.getExecutionFrequency(context).toFloat()) }
@@ -301,7 +303,8 @@ fun SettingsScreen() {
 
     Column(
         modifier = Modifier
-            .height(800.dp)
+            .fillMaxSize()
+            .verticalScroll(scrollState)
             .padding(10.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -319,37 +322,42 @@ fun SettingsScreen() {
         Text(
             text = "Esta aplicación borrara solo los archivos tipo Imagen y Video",
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.error,
+            color = Color.Red,
             textAlign = TextAlign.Center,
             modifier = Modifier.width(330.dp)
         )
         Spacer(modifier = Modifier.height(20.dp))
         Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .background(color = Color(0xFFFFFFFF), shape = RoundedCornerShape(10.dp))
                 .border(1.dp, Color(0xFF174375), shape = RoundedCornerShape(10.dp))
         ) {
-            Row() {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
                 Icon(
                     painter = painterResource(R.drawable.ajustes),
                     contentDescription = null,
                     tint = Color.Unspecified,
                     modifier = Modifier
-                        .padding(start = 15.dp, top = 8.dp)
+                        .padding(start = 15.dp, top = 9.dp)
                         .height(50.dp)
                         .width(50.dp)
                 )
                 Text(
                     text = "Archivos con ${daysToKeep.roundToInt()} o más días de antigüedad",
                     style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Start,
                     modifier = Modifier.padding(top = 9.dp, start = 10.dp)
                 )
             }
             Spacer(modifier = Modifier.height(20.dp))
             Button(
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF174375)),
-                modifier = Modifier
-                    .padding(bottom = 10.dp, start = 50.dp),
                 onClick = { showDatePicker = true }
             ) {
                 Icon(painter = painterResource(R.drawable.calender), contentDescription = null)
@@ -379,44 +387,48 @@ fun SettingsScreen() {
                     onDismiss = { showDatePicker = false }
                 )
             }
+            Spacer(modifier = Modifier.height(10.dp))
         }
         Spacer(modifier = Modifier.height(10.dp))
         Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment= Alignment.CenterHorizontally,
             modifier = Modifier
                 .background(color = Color(0xFFFFFFFF), shape = RoundedCornerShape(10.dp))
                 .border(1.dp, Color(0xFF174375), shape = RoundedCornerShape(10.dp))
         ) {
+            Spacer(modifier = Modifier.height(10.dp))
             Row(
-                modifier = Modifier.width(400.dp)
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
             ) {
+                Spacer(modifier = Modifier.width(10.dp))
                 Icon(
                     painter = painterResource(R.drawable.reloj),
                     contentDescription = null,
                     tint = Color.Unspecified,
                     modifier = Modifier
-                        .padding(start = 15.dp, top = 8.dp)
                         .height(50.dp)
                         .width(50.dp)
                 )
+                Spacer(modifier = Modifier.width(5.dp))
                 Text(
                     text = "Ejecutar limpieza cada ${selectedTime.roundToInt()} horas",
                     style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(top = 20.dp, start = 10.dp)
+                    textAlign = TextAlign.Start,
                 )
             }
-
             Spacer(modifier = Modifier.height(20.dp))
             Button(
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF174375)),
-                modifier = Modifier
-                    .padding(bottom = 10.dp, start = 40.dp),
                 onClick = { showTimePicker = true }
             ) {
                 Icon(
                     painter = painterResource(R.drawable.relojcalendario),
                     contentDescription = null
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(5.dp))
                 Text("Cambiar frecuencia de ejecución")
             }
             if (showTimePicker) {
@@ -436,28 +448,39 @@ fun SettingsScreen() {
                     onDismiss = { showTimePicker = false }
                 )
             }
+            Spacer(modifier = Modifier.height(10.dp))
         }
         Spacer(modifier = Modifier.height(10.dp))
         Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .background(color = Color(0xFFFFFFFF), shape = RoundedCornerShape(10.dp))
                 .border(1.dp, Color(0xFF174375), shape = RoundedCornerShape(10.dp))
         ){
-            Row(){
-                Icon(painterResource(R.drawable.movil), contentDescription = null, tint = Color(0xFF174375), modifier = Modifier.padding(start = 15.dp, top = 19.dp).height(50.dp).width(50.dp))
-                Text(text = "La tarea de limpieza se ejecutará automáticamente cada ${selectedTime.roundToInt()} horas con la configuración guardada.", textAlign = TextAlign.Left, modifier = Modifier.padding(start = 10.dp, end = 15.dp, top = 9.dp))
+            Spacer(modifier = Modifier.height(10.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Spacer(modifier = Modifier.width(10.dp))
+                Icon(painterResource(R.drawable.movil), contentDescription = null, tint = Color(0xFF174375), modifier = Modifier.height(50.dp).width(50.dp))
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(text = "La tarea de limpieza se ejecutará automáticamente cada ${selectedTime.roundToInt()} horas con la configuración guardada.", textAlign = TextAlign.Start)
             }
             Spacer(modifier = Modifier.height(20.dp))
             Button(
-                modifier = Modifier.padding(start = 70.dp, bottom = 10.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF174375)),
                 onClick = {
                 WorkerScheduler.runNow(context)
                 Toast.makeText(context, "Ejecutando limpieza inmediata...", Toast.LENGTH_SHORT).show()
             }) {
                 Icon(painterResource(R.drawable.ejecutar), contentDescription = null)
-                Text(text = "Ejecutar limpieza ahora", modifier = Modifier.padding(start = 10.dp))
+                Spacer(modifier = Modifier.width(5.dp))
+                Text(text = "Ejecutar limpieza ahora")
             }
+            Spacer(modifier = Modifier.height(10.dp))
         }
         Spacer(modifier = Modifier.height(20.dp))
         Text(
