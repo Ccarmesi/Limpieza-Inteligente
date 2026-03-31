@@ -468,7 +468,7 @@ fun SettingsScreen() {
         )
     }
 }
-/*
+
 // FUNCIONES DE VISTA PREVIA (PREVIEW)
 @Preview(showBackground = true, name = "Pantalla de Contraseña")
 @Composable
@@ -477,7 +477,7 @@ fun PasswordPreview() {
         PasswordScreen(onPasswordCorrect = {})
     }
 }
-*/
+
 @Preview(showBackground = true, name = "Pantalla de Ajustes")
 @Composable
 fun SettingsPreview() {
@@ -485,7 +485,7 @@ fun SettingsPreview() {
         SettingsScreen()
     }
 }
-/*
+
 @Preview(showBackground = true, name = "Modal de Fecha")
 @Composable
 @ExperimentalMaterial3Api
@@ -502,5 +502,4 @@ fun TimePickerPreview() {
     MaterialTheme {
         DialExample(onConfirm = {}, onDismiss = {})
     }
-}        
- */
+}
