@@ -431,6 +431,7 @@ fun SettingsScreen() {
                 Spacer(modifier = Modifier.width(5.dp))
                 Text("Cambiar frecuencia de ejecución")
             }
+            Spacer(modifier = Modifier.height(10.dp))
             if (showTimePicker) {
                 DialExample(
                     onConfirm = { time ->
