@@ -13,7 +13,6 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.work.Worker
 import androidx.work.WorkerParameters
-import android.bluetooth.le.ScanResult
 import java.io.File
 
 class CleanWorker(
@@ -56,7 +55,7 @@ class CleanWorker(
                         contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
                         cutoffMillis = cutoffMillis,
                         targetBytes = targetBytes,
-                        BytesDeletedSoFar = imagesResult.bytesDeleted
+                        bytesDeletedSoFar = imagesResult.bytesDeleted
                     )
                 } else {
                     ScanResult(stopReached = true)
@@ -67,7 +66,7 @@ class CleanWorker(
             val totalDeleted = imagesResult.deleted + videosResult.deleted
             val totalBytesDeleted = imagesResult.bytesDeleted + videosResult.bytesDeleted
 
-            val deletedFb = totalBytesDeleted / (1024L * 1024L * 1024L)
+            val deletedGb = totalBytesDeleted / (1024L * 1024L * 1024L)
 
             val title: String
             val message: String
@@ -88,6 +87,10 @@ class CleanWorker(
                     title = "Error de permisos"
                     message = "Se encontraron $totalFound archivos, pero no se pudieron borrar."
                 }
+                else -> {
+                    title = "Limpieza completada"
+                    message = "Se eliminaron $totalDeleted archivos y se liberaron aprox. $deletedGb GB."
+                }
             }
 
             showNotification(title, message)
@@ -100,9 +103,9 @@ class CleanWorker(
     }
 
     private data class ScanResult(
-        var deleted: int = 0,
-        var found: int = 0,
-        var scanned: int = 0,
+        var deleted: Int = 0,
+        var found: Int = 0,
+        var scanned: Int = 0,
         var bytesDeleted: Long = 0L,
         var stopReached: Boolean = false
     )
@@ -111,7 +114,7 @@ class CleanWorker(
         contentUri: Uri,
         cutoffMillis: Long,
         targetBytes: Long,
-        bytesDeletedSofar: Long
+        bytesDeletedSoFar: Long
     ): ScanResult {
         val resolver = applicationContext.contentResolver
         val result = ScanResult()
@@ -125,14 +128,14 @@ class CleanWorker(
         )
 
         val selection = "${MediaStore.MediaColumns.DATE_MODIFIED} < ?"
-        val selectionArgs = arrayOf((cutoffMillis / 1000L), toString())
+        val selectionArgs = arrayOf((cutoffMillis / 1000L). toString())
 
         resolver.query(
             contentUri,
             projection,
             selection,
             selectionArgs,
-            "${MediaStore.MediaColumns.DATE_MODIFIED}ASC"
+            "${MediaStore.MediaColumns.DATE_MODIFIED} ASC"
         )?.use { cursor ->
             val idColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
             val dataColumn = cursor.getColumnIndex(MediaStore.MediaColumns.DATA)
@@ -212,9 +215,24 @@ class CleanWorker(
     }
 
     private fun showNotification(title: String, message: String) {
-        val notificationManager =
-            applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        if
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(CHANNEL_ID, "Limpieza Automática", NotificationManager.IMPORTANCE_DEFAULT)
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.ic_menu_delete) // System icon
+            .setContentTitle(title)
+            .setContentText(message)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .build()
+
+        try {
+            notificationManager.notify(1, notification)
+        } catch (e: SecurityException) {
+            Log.e("CleanWorker", "No se puedes mostrar la notificación. Falta el permiso POST_NOTIFICATIONS")
+        }
     }
 }
