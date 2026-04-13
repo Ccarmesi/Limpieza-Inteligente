@@ -474,7 +474,16 @@ fun SettingsScreen() {
             Button(
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF174375)),
                 onClick = {
-                WorkerScheduler.runNow(context)
+                val intent = Intent(context, FastCleanService::class.java).apply {
+                    putExtra(FastCleanService.EXTRA_DAYS_OLD, SettingsManager.getDaysToKeep(context).toLong())
+                    putExtra(FastCleanService.EXTRA_TARGET_BYTES, 200L * 1024L * 1024L * 1024L)
+                }
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(intent)
+                } else {
+                    context.startService(intent)
+                }
                 Toast.makeText(context, "Ejecutando limpieza inmediata...", Toast.LENGTH_SHORT).show()
             }) {
                 Icon(painterResource(R.drawable.ejecutar), contentDescription = null)

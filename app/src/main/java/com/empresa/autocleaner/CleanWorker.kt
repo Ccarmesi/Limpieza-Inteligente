@@ -24,11 +24,10 @@ class CleanWorker(
         const val KEY_DAYS_OLD = "KEY_DAYS_OLD"
         const val KEY_TARGET_BYTES = "KEY_TARGET_BYTES"
         private const val CHANNEL_ID = "AutoCleanerChannel"
-        private const val DEFAULT_TARGET_BYTES = 200L * 1024L * 1024L // 200 GB
+        private const val DEFAULT_TARGET_BYTES = 200L * 1024L * 1024L * 1024L // 200 GB
     }
 
     override fun doWork(): Result {
-        // 1. Verificación de seguridad: ¿Tenemos permiso real para borrar?
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager()) {
             showNotification(
                 "Falta permiso crítico",
@@ -39,33 +38,32 @@ class CleanWorker(
 
         val daysOld = inputData.getLong(KEY_DAYS_OLD, 30L)
         val targetBytes = inputData.getLong(KEY_TARGET_BYTES, DEFAULT_TARGET_BYTES)
-        val cutoffMillis = System.currentTimeMillis() - (daysOld * 24 * 60 * 60 * 1000)
+        val cutoffMillis = System.currentTimeMillis() - (daysOld * 24L * 60L * 60L * 1000L)
 
         return try {
-            val imagesResult = deleteOldMedia(
-                contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            val videosResult = deleteOldMedia(
+                contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
                 cutoffMillis = cutoffMillis,
                 targetBytes = targetBytes,
                 bytesDeletedSoFar = 0L
             )
 
-            val videosResult =
-                if (imagesResult.bytesDeleted < targetBytes) {
+            val imagesResult =
+                if (videosResult.bytesDeleted < targetBytes) {
                     deleteOldMedia(
-                        contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                        contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                         cutoffMillis = cutoffMillis,
                         targetBytes = targetBytes,
-                        bytesDeletedSoFar = imagesResult.bytesDeleted
+                        bytesDeletedSoFar = videosResult.bytesDeleted
                     )
                 } else {
                     ScanResult(stopReached = true)
                 }
 
-            val totalScanned = imagesResult.scanned + videosResult.scanned
-            val totalFound = imagesResult.found + videosResult.found
-            val totalDeleted = imagesResult.deleted + videosResult.deleted
-            val totalBytesDeleted = imagesResult.bytesDeleted + videosResult.bytesDeleted
-
+            val totalScanned = videosResult.scanned + imagesResult.scanned
+            val totalFound = videosResult.found + imagesResult.found
+            val totalDeleted = videosResult.deleted + imagesResult.deleted
+            val totalBytesDeleted = videosResult.bytesDeleted + imagesResult.bytesDeleted
             val deletedGb = totalBytesDeleted / (1024L * 1024L * 1024L)
 
             val title: String
@@ -74,15 +72,12 @@ class CleanWorker(
             when {
                 totalScanned == 0 -> {
                     title = "No se encontraron archivos"
-                    message = "Nose encontraron fotos ni videos para revisar."
+                    message = "No se encontraron fotos ni videos para revisar."
                 }
-
                 totalFound == 0 -> {
                     title = "Sin cambios"
-                    message =
-                        "Se encontraron $totalScanned archivos, pero ninguno cumple la antiguedad."
+                    message = "Se revisaron $totalScanned archivos, pero ninguno cumple la antigüedad."
                 }
-
                 totalDeleted == 0 -> {
                     title = "Error de permisos"
                     message = "Se encontraron $totalFound archivos, pero no se pudieron borrar."
@@ -97,7 +92,7 @@ class CleanWorker(
             Result.success()
         } catch (e: Exception) {
             Log.e("CleanWorker", "Error durante la tarea de limpieza", e)
-            showNotification("Error en limpieza", "Ocurrió un error: ${e.message}")
+            showNotification("Error en limpieza", "${e.javaClass.simpleName}: ${e.message}")
             Result.failure()
         }
     }
@@ -128,14 +123,14 @@ class CleanWorker(
         )
 
         val selection = "${MediaStore.MediaColumns.DATE_MODIFIED} < ?"
-        val selectionArgs = arrayOf((cutoffMillis / 1000L). toString())
+        val selectionArgs = arrayOf((cutoffMillis / 1000L).toString())
 
         resolver.query(
             contentUri,
             projection,
             selection,
             selectionArgs,
-            "${MediaStore.MediaColumns.DATE_MODIFIED} ASC"
+            "${MediaStore.MediaColumns.SIZE} DESC"
         )?.use { cursor ->
             val idColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
             val dataColumn = cursor.getColumnIndex(MediaStore.MediaColumns.DATA)
@@ -144,19 +139,27 @@ class CleanWorker(
             val sizeColumn = cursor.getColumnIndex(MediaStore.MediaColumns.SIZE)
 
             while (cursor.moveToNext()) {
+                if (bytesDeletedSoFar + result.bytesDeleted >= targetBytes) {
+                    result.stopReached = true
+                    break
+                }
+
                 result.scanned++
 
                 val id = cursor.getLong(idColumn)
                 val path = if (dataColumn != -1) cursor.getString(dataColumn) else null
-                val dateModifiedSecs =
-                    if (dateModifiedColumn != -1) cursor.getLong(dateModifiedColumn) else 0L
-                val dateTakenMillis =
-                    if (dateTakenColumn != -1 && !cursor.isNull(dateTakenColumn)) cursor.getLong(
-                        dateTakenColumn
-                    ) else null
+                val dateModifiedSecs = if (dateModifiedColumn != -1) cursor.getLong(dateModifiedColumn) else 0L
+                val dateTakenMillis = if (dateTakenColumn != -1 && !cursor.isNull(dateTakenColumn)) {
+                    cursor.getLong(dateTakenColumn)
+                } else {
+                    null
+                }
                 val fileDateMillis = dateTakenMillis ?: (dateModifiedSecs * 1000L)
-                val sizeBytes =
-                    if (sizeColumn != -1 && !cursor.isNull(sizeColumn)) cursor.getLong(sizeColumn) else 0L
+                val sizeBytes = if (sizeColumn != -1 && !cursor.isNull(sizeColumn)) {
+                    cursor.getLong(sizeColumn)
+                } else {
+                    0L
+                }
 
                 if (fileDateMillis < cutoffMillis) {
                     result.found++
@@ -164,19 +167,16 @@ class CleanWorker(
                     if (deleteFile(path, contentUri, id, resolver)) {
                         result.deleted++
                         result.bytesDeleted += sizeBytes
-
-                        if (bytesDeletedSoFar + result.bytesDeleted >= targetBytes) {
-                            result.stopReached = true
-                            break
-                        }
                     }
                 }
             }
         }
+
         Log.d(
             "CleanWorker",
             "URI: $contentUri -> Escaneados: ${result.scanned}, Antiguos: ${result.found}, Borrados: ${result.deleted}, Bytes: ${result.bytesDeleted}"
         )
+
         return result
     }
 
@@ -189,24 +189,27 @@ class CleanWorker(
         return try {
             val itemUri = ContentUris.withAppendedId(contentUri, id)
 
+            val rowsDeleted = resolver.delete(itemUri, null, null)
+            if (rowsDeleted > 0) {
+                Log.d("CleanWorker", "Archivo eliminado por MediaStore ID: $id")
+                return true
+            }
+
             if (!path.isNullOrBlank()) {
                 val file = File(path)
                 if (file.exists() && file.delete()) {
-                    resolver.delete(itemUri, null, null) // limpia solo la entrada exacta
+                    try {
+                        resolver.delete(itemUri, null, null)
+                    } catch (_: Exception) {
+                    }
                     Log.d("CleanWorker", "Archivo eliminado por ruta: $path")
                     return true
                 }
             }
 
-            val rowsDeleted = resolver.delete(itemUri, null, null)
-            if (rowsDeleted > 0) {
-                Log.d("CleanWorker", "Archivo eliminado por MediaStore ID: $id")
-                true
-            } else {
-                false
-            }
+            false
         } catch (e: SecurityException) {
-            Log.e("CleanWorker", "Error inesperado al eliminar ID: $id", e)
+            Log.e("CleanWorker", "Permiso denegado al eliminar ID: $id", e)
             false
         } catch (e: Exception) {
             Log.e("CleanWorker", "Error inesperado al eliminar ID: $id", e)
@@ -215,15 +218,20 @@ class CleanWorker(
     }
 
     private fun showNotification(title: String, message: String) {
-        val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager =
+            applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(CHANNEL_ID, "Limpieza Automática", NotificationManager.IMPORTANCE_DEFAULT)
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                "Limpieza Automática",
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
             notificationManager.createNotificationChannel(channel)
         }
 
         val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_menu_delete) // System icon
+            .setSmallIcon(android.R.drawable.ic_menu_delete)
             .setContentTitle(title)
             .setContentText(message)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -232,7 +240,7 @@ class CleanWorker(
         try {
             notificationManager.notify(1, notification)
         } catch (e: SecurityException) {
-            Log.e("CleanWorker", "No se puedes mostrar la notificación. Falta el permiso POST_NOTIFICATIONS")
+            Log.e("CleanWorker", "No se pudo mostrar la notificación. Falta POST_NOTIFICATIONS.", e)
         }
     }
 }
