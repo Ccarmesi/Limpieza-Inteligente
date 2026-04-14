@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
@@ -303,7 +304,7 @@ fun SettingsScreen() {
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
+            .wrapContentHeight()
             .verticalScroll(scrollState)
             .padding(10.dp),
         verticalArrangement = Arrangement.Center,
@@ -316,6 +317,9 @@ fun SettingsScreen() {
         )
         Icon(
             painter = painterResource(R.drawable.bloqueo),
+            modifier = Modifier
+                .height(100.dp)
+                .width(100.dp),
             contentDescription = null,
             tint = Color.Unspecified
         )
@@ -332,32 +336,32 @@ fun SettingsScreen() {
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .background(color = Color(0xFFFFFFFF), shape = RoundedCornerShape(10.dp))
-                .border(1.dp, Color(0xFF174375), shape = RoundedCornerShape(10.dp))
+                .border(1.dp, Color(0xFF808080), shape = RoundedCornerShape(10.dp))
         ) {
+            Spacer(modifier = Modifier.height(10.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
             ) {
+                Spacer(modifier = Modifier.width(20.dp))
                 Icon(
                     painter = painterResource(R.drawable.ajustes),
                     contentDescription = null,
-                    tint = Color.Unspecified,
+                    tint = Color(0xFF808080),
                     modifier = Modifier
-                        .padding(start = 15.dp, top = 9.dp)
                         .height(50.dp)
                         .width(50.dp)
                 )
+                Spacer(modifier = Modifier.width(5.dp))
                 Text(
                     text = "Archivos con ${daysToKeep.roundToInt()} o más días de antigüedad",
                     style = MaterialTheme.typography.bodyLarge,
-                    textAlign = TextAlign.Start,
-                    modifier = Modifier.padding(top = 9.dp, start = 10.dp)
+                    textAlign = TextAlign.Start
                 )
             }
             Spacer(modifier = Modifier.height(20.dp))
             Button(
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF174375)),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF808080)),
                 onClick = { showDatePicker = true }
             ) {
                 Icon(painter = painterResource(R.drawable.calender), contentDescription = null)
@@ -395,19 +399,18 @@ fun SettingsScreen() {
             horizontalAlignment= Alignment.CenterHorizontally,
             modifier = Modifier
                 .background(color = Color(0xFFFFFFFF), shape = RoundedCornerShape(10.dp))
-                .border(1.dp, Color(0xFF174375), shape = RoundedCornerShape(10.dp))
+                .border(1.dp, Color(0xFFFF0000), shape = RoundedCornerShape(10.dp))
         ) {
             Spacer(modifier = Modifier.height(10.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
             ) {
-                Spacer(modifier = Modifier.width(10.dp))
+                Spacer(modifier = Modifier.width(20.dp))
                 Icon(
                     painter = painterResource(R.drawable.reloj),
                     contentDescription = null,
-                    tint = Color.Unspecified,
+                    tint = Color(0xFFFF0000),
                     modifier = Modifier
                         .height(50.dp)
                         .width(50.dp)
@@ -421,7 +424,7 @@ fun SettingsScreen() {
             }
             Spacer(modifier = Modifier.height(20.dp))
             Button(
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF174375)),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF0000)),
                 onClick = { showTimePicker = true }
             ) {
                 Icon(
@@ -431,7 +434,7 @@ fun SettingsScreen() {
                 Spacer(modifier = Modifier.width(5.dp))
                 Text("Cambiar frecuencia de ejecución")
             }
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(0.dp))
             if (showTimePicker) {
                 DialExample(
                     onConfirm = { time ->
@@ -463,12 +466,17 @@ fun SettingsScreen() {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
             ) {
-                Spacer(modifier = Modifier.width(10.dp))
-                Icon(painterResource(R.drawable.movil), contentDescription = null, tint = Color(0xFF174375), modifier = Modifier.height(50.dp).width(50.dp))
-                Spacer(modifier = Modifier.width(10.dp))
-                Text(text = "La tarea de limpieza se ejecutará automáticamente cada ${selectedTime.roundToInt()} horas con la configuración guardada.", textAlign = TextAlign.Start)
+                Spacer(modifier = Modifier.width(20.dp))
+                Icon(
+                    painter =painterResource(R.drawable.movil),
+                    contentDescription = null,
+                    tint = Color(0xFF174375),
+                    modifier = Modifier
+                        .height(50.dp)
+                        .width(50.dp))
+                Spacer(modifier = Modifier.width(5.dp))
+                Text(text = "Ejecutar Limpieza UltraRapida")
             }
             Spacer(modifier = Modifier.height(20.dp))
             Button(
