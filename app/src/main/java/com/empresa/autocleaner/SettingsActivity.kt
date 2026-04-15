@@ -42,13 +42,21 @@ import androidx.compose.material3.DatePicker
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.TimePicker
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.NavigationBarDefaults
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
@@ -63,6 +71,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.TimePickerDefaults
 import androidx.compose.material3.TimePickerState
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.compose.ui.graphics.vector.ImageVector as imageVector
 import kotlin.math.roundToInt
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -268,6 +280,55 @@ fun DialExample(
             Text("Aceptar selección")
         }
     }
+}
+
+@Composable
+fun NavigationBarExample(modifier: Modifier = Modifier){
+    val navController = rememberNavController()
+    val startDestination = Destination.SETTINGS
+    var selectedDestination by rememberSaveable {mutableIntStateOf(startDestination.ordinal)}
+
+    Scaffold(
+        modifier = modifier,
+        bottomBar = {
+            NavigationBar(windowInsets = NavigationBarDefaults.windowInsets){
+                Destination.entries.forEachIndexed {index, destination ->
+                    NavigationBarItem(
+                        selected = selectedDestination == index,
+                        onClick = {
+                            navController.navigate(route = destination.route)
+                            selectedDestination = index
+                        },
+                        icon = {
+                            Icon(
+                                destination.icon,
+                                contentDescription = destination.contentDescription
+                            )
+                        },
+                        label = {Text(destination.label)}
+                    )
+                }
+            }
+        }
+    ){contentPadding ->
+        NavHost(
+            navController = navController,
+            startDestination = startDestination.route,
+            modifier = Modifier.padding(contentPadding)){
+            composable(Destination.SETTINGS.route){
+                SettingsScreen()
+            }
+        }
+    }
+}
+
+enum class Destination(
+    val route: String,
+    val label: String,
+    val icon: imageVector,
+    val contentDescription: String?
+){
+    SETTINGS("settings", "Ajustes", Icons.Default.Settings, "Ajustes")
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -509,7 +570,7 @@ fun SettingsScreen() {
         )
     }
 }
-
+/*
 // FUNCIONES DE VISTA PREVIA (PREVIEW)
 @Preview(showBackground = true, name = "Pantalla de Contraseña")
 @Composable
@@ -542,5 +603,13 @@ fun DatePickerPreview() {
 fun TimePickerPreview() {
     MaterialTheme {
         DialExample(onConfirm = {}, onDismiss = {})
+    }
+}
+*/
+@Preview(showBackground = true, name = "Modal de Navegacion")
+@Composable
+fun NavigationBarPreview(){
+    MaterialTheme{
+        NavigationBarExample()
     }
 }
