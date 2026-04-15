@@ -89,7 +89,7 @@ class SettingsActivity : ComponentActivity() {
                 var isAuthenticated by remember { mutableStateOf(false) }
 
                 if (isAuthenticated) {
-                    SettingsScreen()
+                    MainScreen()
                 } else {
                     PasswordScreen { isAuthenticated = true }
                 }
@@ -282,65 +282,186 @@ fun DialExample(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NavigationBarExample(modifier: Modifier = Modifier){
-    val navController = rememberNavController()
-    val startDestination = Destination.SETTINGS
-    var selectedDestination by rememberSaveable {mutableIntStateOf(startDestination.ordinal)}
+fun Calendario(){
+    val context = LocalContext.current
+    val scrollState = rememberScrollState()
 
-    Scaffold(
-        modifier = modifier,
-        bottomBar = {
-            NavigationBar(windowInsets = NavigationBarDefaults.windowInsets){
-                Destination.entries.forEachIndexed {index, destination ->
-                    NavigationBarItem(
-                        selected = selectedDestination == index,
-                        onClick = {
-                            navController.navigate(route = destination.route)
-                            selectedDestination = index
-                        },
-                        icon = {
-                            Icon(
-                                destination.icon,
-                                contentDescription = destination.contentDescription
-                            )
-                        },
-                        label = {Text(destination.label)}
-                    )
-                }
+    var daysToKeep by remember { mutableFloatStateOf(SettingsManager.getDaysToKeep(context).toFloat()) }
+    var showDatePicker by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            //.wrapContentHeight()
+            .verticalScroll(scrollState)
+            .padding(10.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .background(color = Color(0xFFFFFFFF), shape = RoundedCornerShape(10.dp))
+                .border(1.dp, Color(0xFF808080), shape = RoundedCornerShape(10.dp))
+        ) {
+            Spacer(modifier = Modifier.height(10.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Spacer(modifier = Modifier.width(20.dp))
+                Icon(
+                    painter = painterResource(R.drawable.ajustes),
+                    contentDescription = null,
+                    tint = Color(0xFF808080),
+                    modifier = Modifier
+                        .height(50.dp)
+                        .width(50.dp)
+                )
+                Spacer(modifier = Modifier.width(5.dp))
+                Text(
+                    text = "Archivos con ${daysToKeep.roundToInt()} o más días de antigüedad",
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Start
+                )
             }
-        }
-    ){contentPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = startDestination.route,
-            modifier = Modifier.padding(contentPadding)){
-            composable(Destination.SETTINGS.route){
-                SettingsScreen()
+            Spacer(modifier = Modifier.height(20.dp))
+            Button(
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF808080)),
+                onClick = { showDatePicker = true }
+            ) {
+                Icon(painter = painterResource(R.drawable.calender), contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Cambiar fecha de antigüedad")
             }
+            if (showDatePicker) {
+                DatePickerModal(
+                    onDateSelected = { millis ->
+                        if (millis != null) {
+                            val diffMs = System.currentTimeMillis() - millis
+                            val diffDays = (diffMs / (1000 * 60 * 60 * 24)).toInt()
+
+                            daysToKeep = diffDays.toFloat()
+                            SettingsManager.saveDaysToKeep(context, diffDays)
+
+                            val date = Date(millis)
+                            val formattedDate =
+                                SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(date)
+                            Toast.makeText(
+                                context,
+                                "Nueva antigüedad: $diffDays días ($formattedDate)",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    },
+                    onDismiss = { showDatePicker = false }
+                )
+            }
+            Spacer(modifier = Modifier.height(10.dp))
         }
     }
 }
 
-enum class Destination(
-    val route: String,
-    val label: String,
-    val icon: imageVector,
-    val contentDescription: String?
-){
-    SETTINGS("settings", "Ajustes", Icons.Default.Settings, "Ajustes")
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun Reloj(){
+    val context = LocalContext.current
+    val scrollState = rememberScrollState()
+
+    var selectedTime by remember { mutableFloatStateOf(SettingsManager.getExecutionFrequency(context).toFloat()) }
+    var showTimePicker by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            //.wrapContentHeight()
+            .verticalScroll(scrollState)
+            .padding(10.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment= Alignment.CenterHorizontally,
+            modifier = Modifier
+                .background(color = Color(0xFFFFFFFF), shape = RoundedCornerShape(10.dp))
+                .border(1.dp, Color(0xFFFF0000), shape = RoundedCornerShape(10.dp))
+        ) {
+            Spacer(modifier = Modifier.height(10.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Spacer(modifier = Modifier.width(20.dp))
+                Icon(
+                    painter = painterResource(R.drawable.reloj),
+                    contentDescription = null,
+                    tint = Color(0xFFFF0000),
+                    modifier = Modifier
+                        .height(50.dp)
+                        .width(50.dp)
+                )
+                Spacer(modifier = Modifier.width(5.dp))
+                Text(
+                    text = "Ejecutar limpieza cada ${selectedTime.roundToInt()} horas",
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Start,
+                )
+            }
+            Spacer(modifier = Modifier.height(20.dp))
+            Button(
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF0000)),
+                onClick = { showTimePicker = true }
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.relojcalendario),
+                    contentDescription = null
+                )
+                Spacer(modifier = Modifier.width(5.dp))
+                Text("Cambiar frecuencia de ejecución")
+            }
+            Spacer(modifier = Modifier.height(0.dp))
+            if (showTimePicker) {
+                DialExample(
+                    onConfirm = { time ->
+                        val hours = time.hour
+                        selectedTime = hours.toFloat()
+                        SettingsManager.saveExecutionFrequency(context, hours)
+                        WorkerScheduler.schedule(context.applicationContext)
+                        Toast.makeText(
+                            context,
+                            "Frecuencia guardada: $hours horas.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        showTimePicker = false
+                    },
+                    onDismiss = { showTimePicker = false }
+                )
+            }
+            Spacer(modifier = Modifier.height(10.dp))
+        }
+        Spacer(modifier = Modifier.height(10.dp))
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen() {
+fun LimpiezaRapida(){
+    val context = LocalContext.current
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MainScreen() {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
-    // Nota: SettingsManager puede devolver valores por defecto si el contexto de Preview no tiene SharedPreferences reales.
-    var daysToKeep by remember { mutableFloatStateOf(SettingsManager.getDaysToKeep(context).toFloat()) }
-    var selectedTime by remember { mutableFloatStateOf(SettingsManager.getExecutionFrequency(context).toFloat()) }
-    var showDatePicker by remember { mutableStateOf(false) }
-    var showTimePicker by remember { mutableStateOf(false) }
+    val navController = rememberNavController()
+    //val startDestination = Destination.INICIO
+
+    //var selectedDestination by rememberSaveable {mutableIntStateOf(startDestination.ordinal)}
 
     LaunchedEffect(Unit) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager()) {
@@ -392,7 +513,7 @@ fun SettingsScreen() {
             modifier = Modifier.width(330.dp)
         )
         Spacer(modifier = Modifier.height(20.dp))
-        Column(
+        /*Column(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
@@ -515,7 +636,7 @@ fun SettingsScreen() {
             }
             Spacer(modifier = Modifier.height(10.dp))
         }
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(10.dp))*/
         Column(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -584,7 +705,7 @@ fun PasswordPreview() {
 @Composable
 fun SettingsPreview() {
     MaterialTheme {
-        SettingsScreen()
+        MainScreen()
     }
 }
 
@@ -606,10 +727,11 @@ fun TimePickerPreview() {
     }
 }
 */
-@Preview(showBackground = true, name = "Modal de Navegacion")
+@Preview(showBackground = true, name = "Modal de Hora")
 @Composable
-fun NavigationBarPreview(){
-    MaterialTheme{
-        NavigationBarExample()
+@ExperimentalMaterial3Api
+fun CalendarioPreview() {
+    MaterialTheme {
+        Calendario()
     }
 }
