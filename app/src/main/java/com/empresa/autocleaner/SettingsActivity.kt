@@ -97,7 +97,6 @@ class SettingsActivity : ComponentActivity() {
         }
     }
 }
-
 @Composable
 fun PasswordScreen(onPasswordCorrect: () -> Unit) {
     val context = LocalContext.current
@@ -296,7 +295,7 @@ fun Calendario(){
             .fillMaxSize()
             //.wrapContentHeight()
             .verticalScroll(scrollState)
-            .padding(10.dp),
+            .background(color = Color(0xFFFFFFFF), shape = RoundedCornerShape(10.dp)),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -362,6 +361,14 @@ fun Calendario(){
             }
             Spacer(modifier = Modifier.height(10.dp))
         }
+        Spacer(modifier = Modifier.weight(1f))
+        Text(
+            text = "Oszford Seguridad Especializada\nCreado por Stiven Guerrero\nVersión 2.0",
+            style = MaterialTheme.typography.bodySmall,
+            textAlign = TextAlign.Center,
+            color = Color(0xFF9CA3AF)
+        )
+        Spacer(modifier = Modifier.height(10.dp))
     }
 }
 
@@ -443,25 +450,142 @@ fun Reloj(){
             }
             Spacer(modifier = Modifier.height(10.dp))
         }
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.weight(1f))
+        Text(
+            text = "Oszford Seguridad Especializada\nCreado por Stiven Guerrero\nVersión 2.0",
+            style = MaterialTheme.typography.bodySmall,
+            textAlign = TextAlign.Center,
+            color = Color(0xFF9CA3AF)
+        )
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LimpiezaRapida(){
+fun LimpiezaRapida() {
     val context = LocalContext.current
-}
+    val scrollState = rememberScrollState()
 
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            //.wrapContentHeight()
+            .verticalScroll(scrollState)
+            .padding(10.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .background(color = Color(0xFFFFFFFF), shape = RoundedCornerShape(10.dp))
+                .border(1.dp, Color(0xFF174375), shape = RoundedCornerShape(10.dp))
+        ) {
+            Spacer(modifier = Modifier.height(10.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Spacer(modifier = Modifier.width(20.dp))
+                Icon(
+                    painter = painterResource(R.drawable.movil),
+                    contentDescription = null,
+                    tint = Color(0xFF174375),
+                    modifier = Modifier
+                        .height(50.dp)
+                        .width(50.dp)
+                )
+                Spacer(modifier = Modifier.width(5.dp))
+                Text(text = "Ejecutar Limpieza UltraRapida")
+            }
+            Spacer(modifier = Modifier.height(20.dp))
+            Button(
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF174375)),
+                onClick = {
+                    val intent = Intent(context, FastCleanService::class.java).apply {
+                        putExtra(
+                            FastCleanService.EXTRA_DAYS_OLD,
+                            SettingsManager.getDaysToKeep(context).toLong()
+                        )
+                        putExtra(FastCleanService.EXTRA_TARGET_BYTES, 200L * 1024L * 1024L * 1024L)
+                    }
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        context.startForegroundService(intent)
+                    } else {
+                        context.startService(intent)
+                    }
+                    Toast.makeText(context, "Ejecutando limpieza inmediata...", Toast.LENGTH_SHORT)
+                        .show()
+                }) {
+                Icon(painterResource(R.drawable.ejecutar), contentDescription = null)
+                Spacer(modifier = Modifier.width(5.dp))
+                Text(text = "Ejecutar limpieza ahora")
+            }
+            Spacer(modifier = Modifier.height(10.dp))
+        }
+        Spacer(modifier = Modifier.weight(1f))
+        Text(
+            text = "Oszford Seguridad Especializada\nCreado por Stiven Guerrero\nVersión 2.0",
+            style = MaterialTheme.typography.bodySmall,
+            textAlign = TextAlign.Center,
+            color = Color(0xFF9CA3AF)
+        )
+    }
+}
+/*
+@Composable
+fun NavigationBarExample(modifier: Modifier = Modifier){
+    val navController = rememberNavController()
+    val startDestination = Destination.INICIO
+
+    var selectedDestination by rememberSaveable {mutableIntStateOf(startDestination.ordinal)}
+
+    Scaffold(
+        modifier = modifier,
+        bottomBar = {
+            NavigationBar(windowInsets = NavigationBarDefaults.windowInsets) {
+                Destination.entries.forEachIndexed { index, destination ->
+                    NavigationBarItem(
+                        selected = selectedDestination == index,
+                        onClick = {
+                            navController.navigate(route = destination.route)
+                            selectedDestination = index
+                        },
+                        icon = {
+                            Icon(
+                                destination.icon,
+                                contentDescription = destination.contentDescription
+                            )
+                        },
+                        label = { Text(destination.label) }
+                    )
+                }
+            }
+        }
+    ) {contentPadding ->
+        NavHost(
+            navController = navController,
+            startDestination = startDestination.route,
+            modifier = Modifier.padding(contentPadding)
+        ) {
+            composable(Destination.INICIO.route) {
+                Calendario()
+            }
+        }
+    }
+}
+*/
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen() {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
     val navController = rememberNavController()
-    //val startDestination = Destination.INICIO
+    val startDestination = Destination.INICIO
 
-    //var selectedDestination by rememberSaveable {mutableIntStateOf(startDestination.ordinal)}
+    var selectedDestination by rememberSaveable {mutableIntStateOf(startDestination.ordinal)}
 
     LaunchedEffect(Unit) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager()) {
@@ -484,9 +608,10 @@ fun MainScreen() {
         }
     }
 
-    Column(
+    /*Column(
         modifier = Modifier
-            .wrapContentHeight()
+            .fillMaxSize()
+            //.wrapContentHeight()
             .verticalScroll(scrollState)
             .padding(10.dp),
         verticalArrangement = Arrangement.Center,
@@ -512,226 +637,90 @@ fun MainScreen() {
             textAlign = TextAlign.Center,
             modifier = Modifier.width(330.dp)
         )
-        Spacer(modifier = Modifier.height(20.dp))
-        /*Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .background(color = Color(0xFFFFFFFF), shape = RoundedCornerShape(10.dp))
-                .border(1.dp, Color(0xFF808080), shape = RoundedCornerShape(10.dp))
-        ) {
-            Spacer(modifier = Modifier.height(10.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Spacer(modifier = Modifier.width(20.dp))
-                Icon(
-                    painter = painterResource(R.drawable.ajustes),
-                    contentDescription = null,
-                    tint = Color(0xFF808080),
-                    modifier = Modifier
-                        .height(50.dp)
-                        .width(50.dp)
-                )
-                Spacer(modifier = Modifier.width(5.dp))
-                Text(
-                    text = "Archivos con ${daysToKeep.roundToInt()} o más días de antigüedad",
-                    style = MaterialTheme.typography.bodyLarge,
-                    textAlign = TextAlign.Start
-                )
-            }
-            Spacer(modifier = Modifier.height(20.dp))
-            Button(
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF808080)),
-                onClick = { showDatePicker = true }
-            ) {
-                Icon(painter = painterResource(R.drawable.calender), contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Cambiar fecha de antigüedad")
-            }
-            if (showDatePicker) {
-                DatePickerModal(
-                    onDateSelected = { millis ->
-                        if (millis != null) {
-                            val diffMs = System.currentTimeMillis() - millis
-                            val diffDays = (diffMs / (1000 * 60 * 60 * 24)).toInt()
-
-                            daysToKeep = diffDays.toFloat()
-                            SettingsManager.saveDaysToKeep(context, diffDays)
-
-                            val date = Date(millis)
-                            val formattedDate =
-                                SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(date)
-                            Toast.makeText(
-                                context,
-                                "Nueva antigüedad: $diffDays días ($formattedDate)",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    },
-                    onDismiss = { showDatePicker = false }
-                )
-            }
-            Spacer(modifier = Modifier.height(10.dp))
-        }
-        Spacer(modifier = Modifier.height(10.dp))
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment= Alignment.CenterHorizontally,
-            modifier = Modifier
-                .background(color = Color(0xFFFFFFFF), shape = RoundedCornerShape(10.dp))
-                .border(1.dp, Color(0xFFFF0000), shape = RoundedCornerShape(10.dp))
-        ) {
-            Spacer(modifier = Modifier.height(10.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Spacer(modifier = Modifier.width(20.dp))
-                Icon(
-                    painter = painterResource(R.drawable.reloj),
-                    contentDescription = null,
-                    tint = Color(0xFFFF0000),
-                    modifier = Modifier
-                        .height(50.dp)
-                        .width(50.dp)
-                )
-                Spacer(modifier = Modifier.width(5.dp))
-                Text(
-                    text = "Ejecutar limpieza cada ${selectedTime.roundToInt()} horas",
-                    style = MaterialTheme.typography.bodyLarge,
-                    textAlign = TextAlign.Start,
-                )
-            }
-            Spacer(modifier = Modifier.height(20.dp))
-            Button(
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF0000)),
-                onClick = { showTimePicker = true }
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.relojcalendario),
-                    contentDescription = null
-                )
-                Spacer(modifier = Modifier.width(5.dp))
-                Text("Cambiar frecuencia de ejecución")
-            }
-            Spacer(modifier = Modifier.height(0.dp))
-            if (showTimePicker) {
-                DialExample(
-                    onConfirm = { time ->
-                        val hours = time.hour
-                        selectedTime = hours.toFloat()
-                        SettingsManager.saveExecutionFrequency(context, hours)
-                        WorkerScheduler.schedule(context.applicationContext)
-                        Toast.makeText(
-                            context,
-                            "Frecuencia guardada: $hours horas.",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        showTimePicker = false
-                    },
-                    onDismiss = { showTimePicker = false }
-                )
-            }
-            Spacer(modifier = Modifier.height(10.dp))
-        }
-        Spacer(modifier = Modifier.height(10.dp))*/
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .background(color = Color(0xFFFFFFFF), shape = RoundedCornerShape(10.dp))
-                .border(1.dp, Color(0xFF174375), shape = RoundedCornerShape(10.dp))
-        ){
-            Spacer(modifier = Modifier.height(10.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Spacer(modifier = Modifier.width(20.dp))
-                Icon(
-                    painter =painterResource(R.drawable.movil),
-                    contentDescription = null,
-                    tint = Color(0xFF174375),
-                    modifier = Modifier
-                        .height(50.dp)
-                        .width(50.dp))
-                Spacer(modifier = Modifier.width(5.dp))
-                Text(text = "Ejecutar Limpieza UltraRapida")
-            }
-            Spacer(modifier = Modifier.height(20.dp))
-            Button(
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF174375)),
-                onClick = {
-                val intent = Intent(context, FastCleanService::class.java).apply {
-                    putExtra(FastCleanService.EXTRA_DAYS_OLD, SettingsManager.getDaysToKeep(context).toLong())
-                    putExtra(FastCleanService.EXTRA_TARGET_BYTES, 200L * 1024L * 1024L * 1024L)
-                }
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    context.startForegroundService(intent)
-                } else {
-                    context.startService(intent)
-                }
-                Toast.makeText(context, "Ejecutando limpieza inmediata...", Toast.LENGTH_SHORT).show()
-            }) {
-                Icon(painterResource(R.drawable.ejecutar), contentDescription = null)
-                Spacer(modifier = Modifier.width(5.dp))
-                Text(text = "Ejecutar limpieza ahora")
-            }
-            Spacer(modifier = Modifier.height(10.dp))
-        }
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.weight(1f))
         Text(
             text = "Oszford Seguridad Especializada\nCreado por Stiven Guerrero\nVersión 2.0",
             style = MaterialTheme.typography.bodySmall,
             textAlign = TextAlign.Center,
             color = Color(0xFF9CA3AF)
-        )
-    }
+        )*/
+        Scaffold(
+            bottomBar = {
+                NavigationBar(windowInsets = NavigationBarDefaults.windowInsets) {
+                    Destination.entries.forEachIndexed { index, destination ->
+                        NavigationBarItem(
+                            selected = selectedDestination == index,
+                            onClick = {
+                                navController.navigate(route = destination.route)
+                                selectedDestination = index
+                            },
+                            icon = {
+                                Icon(
+                                    destination.icon,
+                                    contentDescription = destination.contentDescription
+                                )
+                            },
+                            label = { Text(destination.label) }
+                        )
+                    }
+                }
+            }
+        ) {contentPadding ->
+            NavHost(
+                navController = navController,
+                startDestination = startDestination.route,
+                modifier = Modifier.padding(contentPadding)
+            ) {
+                composable(Destination.INICIO.route) {
+                    Calendario()
+                }
+            }
+        }
+    //}
 }
-/*
+
+enum class Destination(
+    val route:String,
+    val label:String,
+    val icon:imageVector,
+    val contentDescription:String?
+){
+    INICIO("inicio", "Inicio", Icons.Default.Settings, "Inicio")
+}
+
 // FUNCIONES DE VISTA PREVIA (PREVIEW)
-@Preview(showBackground = true, name = "Pantalla de Contraseña")
-@Composable
-fun PasswordPreview() {
-    MaterialTheme {
-        PasswordScreen(onPasswordCorrect = {})
-    }
-}
-
-@Preview(showBackground = true, name = "Pantalla de Ajustes")
-@Composable
-fun SettingsPreview() {
-    MaterialTheme {
-        MainScreen()
-    }
-}
-
-@Preview(showBackground = true, name = "Modal de Fecha")
-@Composable
-@ExperimentalMaterial3Api
-fun DatePickerPreview() {
-    MaterialTheme {
-        DatePickerModal(onDateSelected = {}, onDismiss = {})
-    }
-}
-
-@Preview(showBackground = true, name = "Modal de Hora")
-@Composable
-@ExperimentalMaterial3Api
-fun TimePickerPreview() {
-    MaterialTheme {
-        DialExample(onConfirm = {}, onDismiss = {})
-    }
-}
-*/
-@Preview(showBackground = true, name = "Modal de Hora")
+@Preview(showBackground = true, name = "Modal de navegación")
 @Composable
 @ExperimentalMaterial3Api
 fun CalendarioPreview() {
     MaterialTheme {
         Calendario()
+    }
+}
+
+@Preview(showBackground = true, name = "Modal de navegación")
+@Composable
+@ExperimentalMaterial3Api
+fun RelojPreview() {
+    MaterialTheme {
+        Reloj()
+    }
+}
+
+@Preview(showBackground = true, name = "Modal de navegación")
+@Composable
+@ExperimentalMaterial3Api
+fun LimpiezaRapidaPreview() {
+    MaterialTheme {
+        LimpiezaRapida()
+    }
+}
+
+@Preview(showBackground = true, name = "Modal de navegación")
+@Composable
+@ExperimentalMaterial3Api
+fun MainPreview() {
+    MaterialTheme {
+        MainScreen()
     }
 }
