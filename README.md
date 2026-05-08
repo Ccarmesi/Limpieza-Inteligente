@@ -1,61 +1,66 @@
 # Limpieza Inteligente
 
-El aplicativo móvil de limpieza se créo con la finalidad de optimizar almacenamientos de dispositivos móviles android, liberando espacio y reduciendo lentitud en el software.
+Limpieza Inteligente es una aplicación móvil para dispositivos Android diseñada para optimizar el almacenamiento del dispositivo, liberar espacio y ayudar a reducir la lentitud del sistema causada por archivos innecesarios.
 
-## Instalación 
+## Requisitos previos
 
-### Requisitos Previos
+Antes de instalar o compilar la aplicación, asegúrate de contar con:
 
 - Android 10 o superior
-- Espacio suficiente en el almacenamiento del dispositivo
-- Permiso de acceso a archivos y almacenamiento
-- Android Studio
+- Android Studio instalado
+- Espacio suficiente en el dispositivo
+- Permisos de acceso a archivos y almacenamiento
+- Permiso de notificaciones, si aplica
 
-### Instalación globalmente
+## Instalación del proyecto
 
-Con este comando se instalará las carpetas del aplicativo
+1. Clona o descarga el repositorio del proyecto.
+2. Abre Android Studio.
+3. Selecciona **Open** y abre la carpeta del proyecto.
+4. Espera a que Android Studio sincronice las dependencias.
+5. Conecta un dispositivo Android o configura un emulador.
 
-- npm install -g Limpieza-Inteligente
+## Generar APK
 
-Este link contiene las instrucciones de instalación de Android Studio. Dentro del entorno de desarrollo se debe abrir la carpeta generada por el Git-Hub.
+Para generar el archivo instalable APK:
 
-- https://developer.android.com/tools/releases/platform-tools?hl=es-419
+1. En Android Studio, ve a **Build**.
+2. Selecciona **Generate Signed App Bundle or APK**.
+3. Elige **APK**.
+4. Selecciona el archivo keystore correspondiente.
+5. Ingresa las credenciales autorizadas del keystore.
+6. Selecciona el tipo de compilación **Release**.
+7. Finaliza el proceso.
 
-### Pasos
+Al terminar, Android Studio mostrará una notificación con acceso directo a la carpeta donde se generó el APK.
 
-Dentro de Android Studio.
+## Uso de la aplicación
 
-- Build
-- Generate Signed App Bundle or APK
-- APK
-- Key store password - Key password -> Contraseña del area de sistemas
-- Release
+### Limpieza automática
 
-Estas acciones generan el archivo instalable APK de limpieza en la ruta de las carpetas del app. En las notificaciones de Android Studio podrás encontrar el acceso directo a la carpeta.
+Dentro de la aplicación:
 
-## Uso
+1. Toca **Cambiar fecha de antigüedad**.
+2. Selecciona la fecha deseada.
+3. Toca **Cambiar frecuencia de ejecución**.
+4. Selecciona la frecuencia de limpieza.
 
-### Limpiar Automáticamente 
+### Limpieza instantánea
 
-Dentro del Aplicativo de Limpieza.
+Dentro de la aplicación:
 
-- Clic en cambiar fecha de antigüedad
-- Seleccionar fecha
-- Clic en cambiar frecuencia de ejecución
-- Seleccionar frecuencia
+1. Toca **Ejecutar limpieza ahora**.
 
-### Limpieza Instantáneamente
+## Configuración de permisos
 
-Dentro del Aplicativo de Limpieza.
+En el dispositivo Android:
 
-- Clic en ejecutar Limpieza ahora
+1. Abre **Ajustes**.
+2. Ve a **Aplicaciones**.
+3. Selecciona **Limpieza Inteligente**.
+4. Entra en **Permisos**.
+5. Permite las notificaciones y el acceso a archivos, según sea necesario.
 
-## Configuración
+## Notas de seguridad
 
-Dentro del dispositivo móvil con el aplicativo instalado
-
-- Clic en ajustes
-- Clic en aplicaciones
-- Clic en Limpieza Inteligente
-- Clic en permisos
-- Permitir notificaciones y acceso a todos los archivos
+No compartas públicamente contraseñas, archivos keystore ni credenciales internas del área de sistemas.
